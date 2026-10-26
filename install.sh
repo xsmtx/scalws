@@ -18,6 +18,31 @@ fail() { echo "scalws install: $*" >&2; exit 1; }
 
 usage() { echo "usage: install.sh [--panel=cpanel|none]" >&2; }
 
+# Fingerprints of the primary keys in an OpenPGP key file, one per line.
+primary_keys() {
+    gpg --batch --show-keys --with-colons "$1" 2>/dev/null \
+        | awk -F: '$1=="pub"{p=1;next} p&&$1=="fpr"{print $10;p=0}'
+}
+
+# Installs the repository key from the downloaded file $1 as keyring $2, failing closed:
+# the file must hold exactly one primary key, the pinned one, and the keyring gets only
+# that key (re-exported from a scratch gpg home), never the downloaded file itself.
+install_key() {
+    [ "$(primary_keys "$1")" = "$FINGERPRINT" ] \
+        || fail "the downloaded repository key is not exactly the key ${FINGERPRINT}"
+    gh=$(mktemp -d)
+    if GNUPGHOME=$gh gpg --batch --quiet --import "$1" 2>/dev/null \
+        && GNUPGHOME=$gh gpg --batch --export "$FINGERPRINT" > "$1.pinned" 2>/dev/null; then
+        rm -rf "$gh"
+    else
+        rm -rf "$gh"
+        fail "could not extract the repository key ${FINGERPRINT}"
+    fi
+    [ "$(primary_keys "$1.pinned")" = "$FINGERPRINT" ] \
+        || fail "could not extract the repository key ${FINGERPRINT}"
+    install -m 0644 "$1.pinned" "$2"
+}
+
 PANEL=""
 for arg in "$@"; do
     case "$arg" in
@@ -45,17 +70,17 @@ export DEBIAN_FRONTEND=noninteractive
 if ! command -v curl >/dev/null 2>&1; then
     apt-get update -qq && apt-get install -y -qq curl ca-certificates
 fi
+# The repository key is installed only after its fingerprint is checked: no gpg, no install.
+if ! command -v gpg >/dev/null 2>&1; then
+    apt-get update -qq && apt-get install -y -qq gnupg || true
+fi
+command -v gpg >/dev/null 2>&1 || fail "gpg is needed to verify the repository key (apt-get install gnupg)"
 
 echo "Adding the ScalWS apt repository"
 tmp=$(mktemp)
-trap 'rm -f "$tmp"' EXIT
+trap 'rm -f "$tmp" "$tmp.pinned"' EXIT
 curl -fsSL https://apt.scalws.com/scalws-archive-keyring.gpg -o "$tmp"
-# Check the signing key's fingerprint when gpg is available.
-if command -v gpg >/dev/null 2>&1; then
-    gpg --show-keys --with-colons "$tmp" 2>/dev/null | grep -q "^fpr:*${FINGERPRINT}:" \
-        || fail "the downloaded repository key does not have fingerprint ${FINGERPRINT}"
-fi
-install -m 0644 "$tmp" "$KEYRING"
+install_key "$tmp" "$KEYRING"
 echo "deb [signed-by=${KEYRING}] https://apt.scalws.com stable main" > /etc/apt/sources.list.d/scalws.list
 
 echo "Installing scalws"
