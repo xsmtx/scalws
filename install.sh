@@ -64,7 +64,7 @@ apt-get install -y scalws
 
 enable_panel() {
     if ! scalwsctl panel enable cpanel; then
-        echo "ScalWS is installed, but switching from Apache failed (Apache keeps serving). Details: sudo scalwsctl panel status. Retry: sudo scalwsctl panel enable cpanel" >&2
+        echo "ScalWS is installed, but switching from Apache failed. The error above says what was undone and whether Apache (httpd) serves port 80 again. Fix the cause, then retry: sudo scalwsctl panel enable cpanel" >&2
         exit 1
     fi
 }
