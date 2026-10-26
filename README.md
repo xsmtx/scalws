@@ -57,6 +57,15 @@ welcome page. If another web server (nginx, Apache) holds those ports, the insta
 says so and leaves ScalWS stopped; see
 [moving from nginx or Apache](https://scalws.com/docs/sites/#moving-from-nginx-or-apache-scalwsctl-migrate).
 
+On a server with cPanel the installer asks whether ScalWS should replace Apache; decide
+beforehand with `--panel=cpanel` or `--panel=none`:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sudo sh -s -- --panel=cpanel
+```
+
+See [control panels](https://scalws.com/docs/guide/control-panels/).
+
 ## Publish a site
 
 1. Point the domain's DNS records at the server (`A`, and `AAAA` if it has IPv6).
