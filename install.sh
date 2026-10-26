@@ -62,16 +62,23 @@ echo "Installing scalws"
 apt-get update -qq
 apt-get install -y scalws
 
+enable_panel() {
+    if ! scalwsctl panel enable cpanel; then
+        echo "ScalWS is installed, but switching from Apache failed (Apache keeps serving). Details: sudo scalwsctl panel status. Retry: sudo scalwsctl panel enable cpanel" >&2
+        exit 1
+    fi
+}
+
 if [ -x /usr/local/cpanel/cpanel ]; then
     case "$PANEL" in
-        cpanel) scalwsctl panel enable cpanel ;;
+        cpanel) enable_panel ;;
         none) ;;
         *)
             if ( : </dev/tty ) 2>/dev/null; then
                 printf 'cPanel found. Let ScalWS replace Apache? [y/N] ' >/dev/tty
                 read -r answer </dev/tty || answer=""
                 case "$answer" in
-                    [yY]*) scalwsctl panel enable cpanel ;;
+                    [yY]*) enable_panel ;;
                     *) echo "Later: sudo scalwsctl panel enable cpanel" ;;
                 esac
             else
