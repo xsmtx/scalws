@@ -40,14 +40,26 @@ curl -fsSL https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sudo
 ```
 
 The [installer](install.sh) adds the signed ScalWS apt repository and installs the
-`scalws` package. The same by hand:
+`scalws` package. The same by hand, as root (`sudo -i`); like the installer, it checks
+that the downloaded key file holds exactly the pinned key and installs only that key:
 
 ```sh
-curl -fsSL https://apt.scalws.com/scalws-archive-keyring.gpg \
-    | sudo tee /usr/share/keyrings/scalws-archive-keyring.gpg >/dev/null
+FPR=0B49CE4488DC3A3E4F631218CBBBF99C69B99EF0
+apt-get install -y curl gnupg
+key=$(mktemp)
+curl -fsSL https://apt.scalws.com/scalws-archive-keyring.gpg -o "$key"
+# The file must hold exactly one primary key, the pinned one: stop if this says WRONG.
+test "$(gpg --show-keys --with-colons "$key" \
+    | awk -F: '$1=="pub"{p=1;next} p&&$1=="fpr"{print $10;p=0}')" = "$FPR" \
+    && echo "repository key OK" || echo "WRONG repository key: stop here"
+# Install only that key, re-exported from a scratch keyring (never the downloaded file).
+export GNUPGHOME=$(mktemp -d)
+gpg --quiet --import "$key"
+gpg --export "$FPR" > /usr/share/keyrings/scalws-archive-keyring.gpg
+rm -rf "$GNUPGHOME" "$key"; unset GNUPGHOME
 echo 'deb [signed-by=/usr/share/keyrings/scalws-archive-keyring.gpg] https://apt.scalws.com stable main' \
-    | sudo tee /etc/apt/sources.list.d/scalws.list
-sudo apt update && sudo apt install scalws
+    > /etc/apt/sources.list.d/scalws.list
+apt update && apt install scalws
 ```
 
 Repository signing key: `0B49 CE44 88DC 3A3E 4F63  1218 CBBB F99C 69B9 9EF0`.
