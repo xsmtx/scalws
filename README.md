@@ -78,6 +78,12 @@ To leave the panel's web server alone, install with `--panel=none`:
 curl -fsSL https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sudo sh -s -- --panel=none
 ```
 
+Installing by hand, set `SCALWS_PANEL=none` for the package, after `sudo` (or in the root
+shell): `sudo SCALWS_PANEL=none apt-get install scalws`. Placed before `sudo`, as in
+`SCALWS_PANEL=none sudo apt-get install scalws`, it never reaches the package (`sudo`
+drops it). On a panel server the package never starts ScalWS next to the panel's web
+server; without the takeover it prints the command that switches over.
+
 See [control panels](https://scalws.com/docs/guide/control-panels/).
 
 ## Publish a site
