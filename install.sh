@@ -3,9 +3,9 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sudo sh
 #
-# On a cPanel server the installer offers to let ScalWS replace Apache; answer up front with
-#   curl -fsSL https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sudo sh -s -- --panel=cpanel
-# (--panel=none leaves Apache alone). Without cPanel the option has no effect.
+# On a cPanel or DirectAdmin server the first install lets ScalWS take over the panel's web
+# server (undo: sudo scalwsctl panel disable); --panel=none leaves it alone:
+#   curl -fsSL https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sudo sh -s -- --panel=none
 #
 # Ubuntu 24.04+ or Debian 13+, amd64. The package starts the server on ports 80 and 443;
 # then publish a site with: sudo scalwsctl site add example.com
@@ -16,7 +16,7 @@ FINGERPRINT=0B49CE4488DC3A3E4F631218CBBBF99C69B99EF0
 
 fail() { echo "scalws install: $*" >&2; exit 1; }
 
-usage() { echo "usage: install.sh [--panel=cpanel|none]" >&2; }
+usage() { echo "usage: install.sh [--panel=none]" >&2; }
 
 # Fingerprints of the primary keys in an OpenPGP key file, one per line.
 primary_keys() {
@@ -46,8 +46,8 @@ install_key() {
 PANEL=""
 for arg in "$@"; do
     case "$arg" in
-        --panel=cpanel) PANEL=cpanel ;;
         --panel=none) PANEL=none ;;
+        --panel=*) usage; fail "unknown panel option: $arg (the panel takeover is automatic; --panel=none skips it)" ;;
         -h|--help) usage; exit 0 ;;
         *) usage; fail "unknown argument: $arg" ;;
     esac
@@ -85,29 +85,13 @@ echo "deb [signed-by=${KEYRING}] https://apt.scalws.com stable main" > /etc/apt/
 
 echo "Installing scalws"
 apt-get update -qq
-apt-get install -y scalws
+if [ "$PANEL" = none ]; then
+    # The package's postinstall reads it: no panel takeover.
+    SCALWS_PANEL=none apt-get install -y scalws
+else
+    apt-get install -y scalws
+fi
 
-enable_panel() {
-    if ! scalwsctl panel enable cpanel; then
-        echo "ScalWS is installed, but switching from Apache failed. The error above says what was undone and whether Apache (httpd) serves port 80 again. Fix the cause, then retry: sudo scalwsctl panel enable cpanel" >&2
-        exit 1
-    fi
-}
-
-if [ -x /usr/local/cpanel/cpanel ]; then
-    case "$PANEL" in
-        cpanel) enable_panel ;;
-        none) ;;
-        *)
-            if ( : </dev/tty ) 2>/dev/null; then
-                printf 'cPanel found. Let ScalWS replace Apache? [y/N] ' >/dev/tty
-                read -r answer </dev/tty || answer=""
-                case "$answer" in
-                    [yY]*) enable_panel ;;
-                    *) echo "Later: sudo scalwsctl panel enable cpanel" ;;
-                esac
-            else
-                echo "cPanel found. To let ScalWS replace Apache: sudo scalwsctl panel enable cpanel"
-            fi ;;
-    esac
+if [ -f /var/lib/scalws-panel/state.json ]; then
+    scalwsctl panel status || true
 fi
