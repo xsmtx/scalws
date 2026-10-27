@@ -3,7 +3,7 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sudo sh
 #
-# On a cPanel or DirectAdmin server the first install lets ScalWS take over the panel's web
+# On a cPanel, DirectAdmin or Plesk server the first install lets ScalWS take over the panel's web
 # server (undo: sudo scalwsctl panel disable); --panel=none leaves it alone:
 #   curl -fsSL https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sudo sh -s -- --panel=none
 #

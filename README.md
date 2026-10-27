@@ -69,7 +69,7 @@ welcome page. If another web server (nginx, Apache) holds those ports, the insta
 says so and leaves ScalWS stopped; see
 [moving from nginx or Apache](https://scalws.com/docs/sites/#moving-from-nginx-or-apache-scalwsctl-migrate).
 
-On a server with cPanel or DirectAdmin the first install lets ScalWS take over the panel's
+On a server with cPanel, DirectAdmin or Plesk the first install lets ScalWS take over the panel's
 web server and serve its sites (undo: `sudo scalwsctl panel disable`). If the switch fails,
 everything is undone, the package stays installed and the panel's web server keeps serving.
 To leave the panel's web server alone, install with `--panel=none`:
