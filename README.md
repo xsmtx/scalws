@@ -28,7 +28,9 @@ Runtime** adds web-tier capacity only when the web tier is the bottleneck.
 This repository holds the released packages and the installer. Documentation is at
 [scalws.com/docs](https://scalws.com/docs/).
 
-> **Status: 1.0.0-rc.1, release candidate.** Ubuntu 24.04+ and Debian 13+, amd64.
+> **Status: 1.0.0.** x86_64: AlmaLinux, Rocky Linux and Oracle Linux 8, 9 and 10, Fedora 44,
+> Debian 12 and 13, Ubuntu 22.04, 24.04 and 26.04, openSUSE Leap 15.6 and 16.0, SLES 15 SP7
+> and 16, Alpine Linux 3.24.
 > Feedback and bug reports are welcome in the [issues](https://github.com/xsmtx/scalws/issues).
 
 ## Install
@@ -39,9 +41,18 @@ One command, as root:
 curl -fsSL https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sudo sh
 ```
 
-The [installer](install.sh) adds the signed ScalWS apt repository and installs the
-`scalws` package. The same by hand, as root (`sudo -i`); like the installer, it checks
-that the downloaded key file holds exactly the pinned key and installs only that key:
+On Alpine Linux, as root (no `sudo` there):
+
+```sh
+wget -qO- https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sh
+```
+
+The [installer](install.sh) recognises the system, adds the signed ScalWS repository for
+it (apt, dnf, zypper or apk) and installs the `scalws` package. It trusts the repository
+key only after checking it against the pinned fingerprint (apk: the pinned SHA-256).
+
+By hand on Debian and Ubuntu, as root (`sudo -i`); like the installer, it checks that the
+downloaded key file holds exactly the pinned key and installs only that key:
 
 ```sh
 FPR=0B49CE4488DC3A3E4F631218CBBBF99C69B99EF0
@@ -62,6 +73,17 @@ echo 'deb [signed-by=/usr/share/keyrings/scalws-archive-keyring.gpg] https://apt
 apt update && apt install scalws
 ```
 
+On AlmaLinux, Rocky Linux, Oracle Linux and Fedora:
+
+```sh
+curl -o /etc/yum.repos.d/scalws.repo https://rpm.scalws.com/scalws.repo
+dnf install scalws
+```
+
+dnf asks once to import the key: compare its fingerprint with the one below before you
+answer `y`. For openSUSE and SLES (zypper) and Alpine (apk) see the
+[installation guide](https://scalws.com/docs/guide/installation/).
+
 Repository signing key: `0B49 CE44 88DC 3A3E 4F63  1218 CBBB F99C 69B9 9EF0`.
 
 The server starts right away on ports 80 and 443; `http://<server address>/` shows its
@@ -79,9 +101,9 @@ curl -fsSL https://raw.githubusercontent.com/xsmtx/scalws/main/install.sh | sudo
 ```
 
 Installing by hand, set `SCALWS_PANEL=none` for the package, after `sudo` (or in the root
-shell): `sudo SCALWS_PANEL=none apt-get install scalws`. Placed before `sudo`, as in
-`SCALWS_PANEL=none sudo apt-get install scalws`, it never reaches the package (`sudo`
-drops it). On a panel server the package never starts ScalWS next to the panel's web
+shell): `sudo SCALWS_PANEL=none apt-get install scalws` (or `dnf install`). Placed
+before `sudo`, as in `SCALWS_PANEL=none sudo apt-get install scalws`, it never reaches
+the package (`sudo` drops it). On a panel server the package never starts ScalWS next to the panel's web
 server; without the takeover it prints the command that switches over.
 
 See [control panels](https://scalws.com/docs/guide/control-panels/).
@@ -108,15 +130,18 @@ sudo scalwsctl site list
 sudo scalwsctl site remove old.example.com
 ```
 
-If the ufw firewall is active, open the web ports with `sudo ufw allow 'ScalWS'`; on a
-cloud server, also in the provider's firewall. More in the
+The first install opens ports 80 and 443 in an active ufw or firewalld; on a cloud
+server, open them in the provider's firewall too. More in the
 [installation guide](https://scalws.com/docs/guide/installation/) and
 [site files](https://scalws.com/docs/sites/).
 
 ## Upgrade
 
 ```sh
-sudo apt update && sudo apt upgrade
+sudo apt update && sudo apt upgrade     # Debian, Ubuntu
+sudo dnf upgrade scalws                 # RHEL family, Fedora
+sudo zypper up scalws                   # openSUSE, SLES
+apk upgrade scalws                      # Alpine, as root
 ```
 
 Running sites keep serving during the upgrade. Every build, with its release notes and
@@ -124,20 +149,21 @@ checksums, is listed on [releases.scalws.com](https://releases.scalws.com/).
 
 ## Downloads
 
-Each [GitHub release](https://github.com/xsmtx/scalws/releases) carries the `.deb` package
-and its `SHA256SUMS`. It is the same file as in the apt repository:
+Each [GitHub release](https://github.com/xsmtx/scalws/releases) carries the `.deb`, `.rpm`
+and `.apk` packages and their `SHA256SUMS`: the same files as in the apt, dnf and apk
+repositories:
 
 ```sh
-sha256sum -c SHA256SUMS
-sudo apt install ./scalws_*_amd64.deb
+sha256sum -c --ignore-missing SHA256SUMS
+sudo apt install ./scalws_*_amd64.deb      # or: sudo dnf install ./scalws-*.x86_64.rpm
 ```
 
-A package installed from a file does not update itself; add the apt repository for that.
+A package installed from a file does not update itself; add the repository for that.
 
 ## What it does
 
 * **Protocols:** HTTP/1.1, HTTP/2, TLS 1.2/1.3 with SNI, automatic Let's Encrypt
-  certificates. HTTP/3 is experimental.
+  certificates. HTTP/3 on request (`http3: true` on a listener).
 * **Sites:** one short file per domain (`scalwsctl site add`), migration from nginx and
   Apache (`scalwsctl migrate`), `.htaccess` support with a safe subset.
 * **Applications:** static files, PHP through PHP-FPM, reverse proxy with WebSockets,

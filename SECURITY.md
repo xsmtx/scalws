@@ -4,8 +4,8 @@
 
 | Version | Supported |
 |---|---|
-| 1.0.0-rc.1 (latest package in the apt repository) | yes |
-| older builds | no, upgrade with `apt update && apt install scalws` |
+| 1.0.0 (latest package in the repositories) | yes |
+| older builds, release candidates | no, upgrade through the repository |
 
 ## Reporting a vulnerability
 
