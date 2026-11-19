@@ -14,7 +14,7 @@
   <a href="https://github.com/xsmtx/scalws/releases">Downloads</a> ·
   <a href="https://releases.scalws.com/">Release notes and checksums</a> ·
   <a href="SECURITY.md">Security</a> ·
-  <a href="LICENSE">License: Apache-2.0</a>
+  <a href="LICENSE">License: AGPL-3.0</a>
 </p>
 
 # ScalWS
@@ -28,7 +28,7 @@ Runtime** adds web-tier capacity only when the web tier is the bottleneck.
 This repository holds the released packages and the installer. Documentation is at
 [scalws.com/docs](https://scalws.com/docs/).
 
-> **Status: 1.0.0.** x86_64: AlmaLinux, Rocky Linux and Oracle Linux 8, 9 and 10, Fedora 44,
+> **Status: 1.1.0.** x86_64: AlmaLinux, Rocky Linux and Oracle Linux 8, 9 and 10, Fedora 44,
 > Debian 12 and 13, Ubuntu 22.04, 24.04 and 26.04, openSUSE Leap 15.6 and 16.0, SLES 15 SP7
 > and 16, Alpine Linux 3.24.
 > Feedback and bug reports are welcome in the [issues](https://github.com/xsmtx/scalws/issues).
@@ -91,7 +91,7 @@ welcome page. If another web server (nginx, Apache) holds those ports, the insta
 says so and leaves ScalWS stopped; see
 [moving from nginx or Apache](https://scalws.com/docs/sites/#moving-from-nginx-or-apache-scalwsctl-migrate).
 
-On a server with cPanel, DirectAdmin or Plesk the first install lets ScalWS take over the panel's
+On a server with cPanel (CloudLinux included) or DirectAdmin the first install lets ScalWS take over the panel's
 web server and serve its sites (undo: `sudo scalwsctl panel disable`). If the switch fails,
 everything is undone, the package stays installed and the panel's web server keeps serving.
 To leave the panel's web server alone, install with `--panel=none`:
@@ -191,4 +191,12 @@ Please report security problems privately:
 
 ## License
 
-[Apache License, Version 2.0](LICENSE).
+ScalWS is free software under the GNU Affero General Public License v3.0
+(AGPL-3.0-only) from 1.1 on, see [LICENSE](LICENSE). 1.0.0 and earlier releases stay under
+the Apache License, Version 2.0.
+
+* Running ScalWS unmodified to serve your sites creates no obligation.
+* If you modify ScalWS and let others use it over a network, you must offer those users
+  the source of your modified version under the same licence.
+
+"ScalWS" is a trademark of its author. Forks must use another name.
