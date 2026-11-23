@@ -28,7 +28,7 @@ Runtime** adds web-tier capacity only when the web tier is the bottleneck.
 This repository holds the released packages and the installer. Documentation is at
 [scalws.com/docs](https://scalws.com/docs/).
 
-> **Status: 1.1.0.** x86_64: AlmaLinux, Rocky Linux and Oracle Linux 8, 9 and 10, Fedora 44,
+> **Status: 1.1.1.** x86_64: AlmaLinux, Rocky Linux and Oracle Linux 8, 9 and 10, Fedora 44,
 > Debian 12 and 13, Ubuntu 22.04, 24.04 and 26.04, openSUSE Leap 15.6 and 16.0, SLES 15 SP7
 > and 16, Alpine Linux 3.24.
 > Feedback and bug reports are welcome in the [issues](https://github.com/xsmtx/scalws/issues).
